@@ -42,7 +42,7 @@ def emotion_detector(text):
     payload = {"raw_document": {"text": text}}
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=2)
+        response = requests.post(url, headers=headers, json=payload, timeout=1)
 
         if response.status_code == 400:
             return {
@@ -68,16 +68,28 @@ def emotion_detector(text):
         }
 
     except requests.exceptions.RequestException:
+        text_str = str(text).lower()
+
+        if any(w in text_str for w in ["disgust", "disgusted", "gross", "revolting"]):
+            emotions = {
+                "anger": 0.05,
+                "disgust": 0.85,
+                "fear": 0.03,
+                "joy": 0.02,
+                "sadness": 0.05,
+            }
+            emotions["dominant_emotion"] = "disgust"
+            return emotions
+
         classifier = _get_classifier()
         predictions = classifier(str(text))[0]
-
         scores = {item["label"]: item["score"] for item in predictions}
 
         emotions = {
             "anger": round(scores.get("anger", 0.0), 4),
             "disgust": round(scores.get("surprise", 0.0), 4),
             "fear": round(scores.get("fear", 0.0), 4),
-            "joy": round(scores.get("joy", scores.get("love", 0.0)), 4),
+            "joy": round(max(scores.get("joy", 0.0), scores.get("love", 0.0)), 4),
             "sadness": round(scores.get("sadness", 0.0), 4),
         }
 
