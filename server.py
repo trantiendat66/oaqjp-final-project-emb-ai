@@ -1,6 +1,4 @@
-"""
-Server module for Emotion Detection application.
-"""
+"""Server deployment for Emotion Detection web application."""
 from flask import Flask, render_template, request
 from emotion_detection.emotion_detection import emotion_detector
 
@@ -8,13 +6,12 @@ app = Flask("Emotion Detector")
 
 @app.route("/emotionDetector")
 def emo_detector():
-    """Nhận chuỗi đầu vào, phân tích cảm xúc và trả về kết quả hiển thị."""
-    text_to_analyze = request.args.get('textToAnalyze')
+    """Nhận text, phân tích cảm xúc và trả về phản hồi."""
+    text_to_analyze = request.args.get('textToAnalyze', '')
     response = emotion_detector(text_to_analyze)
 
-    # Kiểm tra trường hợp trả về None (input không hợp lệ)
     if response['dominant_emotion'] is None:
-        return "Invalid text! Please try again!."
+        return "Please enter some text to analyze."
 
     return (
         f"For the given statement, the system response is "
